@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const express = require('express');
 const { exec } = require('child_process');
-const Groq = require('groq-sdk');
+const axios = require('axios');
 
 class ReviewServer {
     constructor(context) {
@@ -68,6 +68,7 @@ class ReviewServer {
     }
 
     async reviewWithGroq(diff) {
+        console.log('🤖 Preparing to review diff with Groq API');
         const config = vscode.workspace.getConfiguration('postCommitReviewer');
         const apiKey = config.get('groqApiKey');
         
@@ -108,17 +109,45 @@ Return your response in strict JSON using this structure:
   ]
 }`;
 
-        const completion = await this.groq.chat.completions.create({
-            messages: [{ role: 'user', content: prompt }],
-            model: 'llama3-8b-8192',
-            temperature: 0.1,
-        });
-
-        const response = completion.choices[0]?.message?.content;
         try {
-            return JSON.parse(response);
-        } catch (e) {
-            return { issues: [{ title: 'Parse Error', explanation: 'Failed to parse AI response', reason: 'Invalid JSON', suggested_fix: 'Check API response', lines: '' }] };
+            console.log("🔵 GROQ CALL TRIGGERED — sending diff to Groq");
+            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 4000,
+                top_p: 1,
+                stream: false
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            });
+
+            if (!response.data || !response.data.choices || !response.data.choices[0]) {
+                throw new Error('Invalid response from Groq API');
+            }
+
+            const content = response.data.choices[0].message.content;
+            console.log("🟢 GROQ RESPONSE RECEIVED:", content.slice(0, 100));
+            return content.trim();
+
+        } catch (error) {
+            console.error('Error generating groq review', error);
+            
+            if (error.response) {
+                const status = error.response.status;
+                const message = error.response.data?.error?.message || 'Unknown API error';
+                throw new Error(`API Error (${status}): ${message}`);
+            } else if (error.code === 'ENOTFOUND') {
+                throw new Error('Network error: Unable to connect to Groq API');
+            } else {
+                throw new Error(`Generation failed: ${error.message}`);
+            }
         }
     }
 
