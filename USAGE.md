@@ -27,7 +27,7 @@
    - Commit with `git commit -m "test"`
    - Review results will appear automatically
 
-## Commands
+## Commands 
 
 - `Post-Commit Reviewer: Setup Git Hook` - Install post-commit hook
 - `Post-Commit Reviewer: Start Review Server` - Start local server

@@ -18,21 +18,28 @@ class ReviewServer {
         this.app.use(express.json());
         
         this.app.post('/review-diff', async (req, res) => {
+            console.log('🔥 POST /review-diff received');
             try {
+                console.log('📝 Getting last commit diff...');
                 const diff = await this.getLastCommitDiff();
                 if (!diff) {
+                    console.log('❌ No diff found');
                     return res.json({ success: false, message: 'No diff found' });
                 }
+                console.log('✅ Diff extracted:', diff.length, 'characters');
 
+                console.log('🤖 Sending to Groq for review...');
                 const review = await this.reviewWithGroq(diff);
+                console.log('✅ Review completed:', review.issues?.length || 0, 'issues found');
                 
                 if (this.reviewCompleteCallback) {
+                    console.log('📤 Calling review complete callback');
                     this.reviewCompleteCallback(review);
                 }
                 
                 res.json({ success: true, review });
             } catch (error) {
-                console.error('Review error:', error);
+                console.error('❌ Review error:', error);
                 res.status(500).json({ success: false, error: error.message });
             }
         });
@@ -42,15 +49,19 @@ class ReviewServer {
         return new Promise((resolve, reject) => {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
             if (!workspaceFolder) {
+                console.log('❌ No workspace folder found');
                 reject(new Error('No workspace folder found'));
                 return;
             }
+            console.log('📁 Workspace folder:', workspaceFolder);
 
             exec('git diff HEAD~1 HEAD', { cwd: workspaceFolder }, (error, stdout) => {
                 if (error) {
+                    console.log('❌ Git diff error:', error.message);
                     reject(error);
                     return;
                 }
+                console.log('✅ Git diff successful');
                 resolve(stdout);
             });
         });
@@ -114,19 +125,23 @@ Return your response in strict JSON using this structure:
     start() {
         const config = vscode.workspace.getConfiguration('postCommitReviewer');
         const port = config.get('serverPort', 3001);
+        console.log('🚀 Starting review server on port', port);
 
         if (this.server) {
+            console.log('⚠️ Server already running');
             vscode.window.showWarningMessage('Review server is already running');
             return;
         }
 
         this.server = this.app.listen(port, () => {
+            console.log('✅ Review server started on port', port);
             vscode.window.showInformationMessage(`Review server started on port ${port}`);
         });
     }
 
     stop() {
         if (this.server) {
+            console.log('🛑 Stopping review server');
             this.server.close();
             this.server = null;
             vscode.window.showInformationMessage('Review server stopped');

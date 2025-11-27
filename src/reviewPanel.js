@@ -8,11 +8,14 @@ class ReviewPanel {
     }
 
     show() {
+        console.log('📊 Showing review panel');
         if (this.panel) {
+            console.log('🔄 Panel exists, revealing');
             this.panel.reveal();
             return;
         }
 
+        console.log('🆕 Creating new webview panel');
         this.panel = vscode.window.createWebviewPanel(
             'postCommitReview',
             'Code Review Results',
@@ -24,6 +27,7 @@ class ReviewPanel {
         );
 
         this.panel.onDidDispose(() => {
+            console.log('🗑️ Panel disposed');
             this.panel = null;
         });
 
@@ -31,17 +35,21 @@ class ReviewPanel {
     }
 
     displayResults(results) {
+        console.log('📊 Displaying review results:', results);
         this.currentResults = results;
         vscode.commands.executeCommand('setContext', 'postCommitReviewer.hasResults', true);
         
         if (!this.panel) {
+            console.log('📝 Creating new panel');
             this.show();
         } else {
+            console.log('🔄 Updating existing panel');
             this.updateContent();
         }
 
         // Show notification
         const issueCount = results.issues?.length || 0;
+        console.log('📊 Issue count:', issueCount);
         if (issueCount > 0) {
             vscode.window.showWarningMessage(`Code review found ${issueCount} issue(s)`, 'View Results')
                 .then(selection => {
