@@ -1,0 +1,88 @@
+{
+  "name": "post-commit-reviewer",
+  "displayName": "AI Post-Commit Code Reviewer",
+  "description": "Automatically reviews committed code using AI after Git commits",
+  "version": "0.0.1",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.106.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "post-commit-reviewer.setupHook",
+        "title": "Setup Git Hook",
+        "category": "Post-Commit Reviewer"
+      },
+      {
+        "command": "post-commit-reviewer.startServer",
+        "title": "Start Review Server",
+        "category": "Post-Commit Reviewer"
+      },
+      {
+        "command": "post-commit-reviewer.stopServer",
+        "title": "Stop Review Server",
+        "category": "Post-Commit Reviewer"
+      },
+      {
+        "command": "post-commit-reviewer.showPanel",
+        "title": "Show Review Panel",
+        "category": "Post-Commit Reviewer"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "postCommitReviewer",
+          "name": "Code Review Results",
+          "when": "postCommitReviewer.hasResults"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Post-Commit Reviewer",
+      "properties": {
+        "postCommitReviewer.groqApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Groq API Key for code review",
+          "scope": "application"
+        },
+        "postCommitReviewer.serverPort": {
+          "type": "number",
+          "default": 3001,
+          "description": "Port for the local review server"
+        },
+        "postCommitReviewer.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start the review server when VS Code opens"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "groq-sdk": "^0.3.3"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.106.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "eslint": "^9.25.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
