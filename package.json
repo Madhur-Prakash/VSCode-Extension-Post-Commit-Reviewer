@@ -71,7 +71,7 @@
 
   "scripts": {
     "clean": "rimraf dist",
-    "esbuild-base": "npx esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:express --external:axios --format=cjs --platform=node",
+    "esbuild-base": "npx esbuild ./extension.js --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "vscode:prepublish": "npm run esbuild-base -- --minify",
