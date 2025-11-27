@@ -47,7 +47,7 @@ class HookManager {
 
 
     getWindowsHookContent(runnerPath) {
-    const nodePath = process.execPath.replace(/\\/g, '\\\\');
+    const nodePath = process.argv[0].replace(/\\/g, '\\\\'); 
     const fixedRunner = runnerPath.replace(/\\/g, '\\\\');
 
     return `@echo off
@@ -59,17 +59,20 @@ class HookManager {
 
 
     getUnixHookContent(runnerPath) {
-        // Escape double quotes and convert backslashes for Unix
-        const fixedRunner = runnerPath.replace(/"/g, '\\"').replace(/\\/g, '/');
-        const nodePath = process.execPath.replace(/"/g, '\\"').replace(/\\/g, '/');
+    const nodePath = process.argv[0]
+        .replace(/"/g, '\\"')
+        .replace(/\\/g, '/');
 
-        return `#!/bin/sh
-            echo "[POST-COMMIT HOOK] Triggered - calling review server..."
-            "${nodePath}" "${fixedRunner}"
-            echo "[POST-COMMIT HOOK] Hook execution completed"
-            exit 0`;
+    const fixedRunner = runnerPath
+        .replace(/"/g, '\\"')
+        .replace(/\\/g, '/');
+
+    return `#!/bin/sh
+    echo "[POST-COMMIT HOOK] Triggered - calling review server..."
+    "${nodePath}" "${fixedRunner}"
+    echo "[POST-COMMIT HOOK] Hook execution completed"
+    exit 0`;
     }
-
 
     getRunnerContent() {
         const config = vscode.workspace.getConfiguration('postCommitReviewer');
