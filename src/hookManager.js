@@ -23,51 +23,53 @@ class HookManager {
         }
 
         try {
-            await this.createHookScript(gitHooksDir);
-            await this.createRunnerScript(workspaceFolder);
+            const runnerPath = await this.createRunnerScript();
+            await this.createHookScript(gitHooksDir, runnerPath);
             vscode.window.showInformationMessage('Git post-commit hook installed successfully');
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to setup hook: ${error.message}`);
         }
     }
 
-    async createHookScript(hooksDir) {
-        const isWindows = os.platform() === 'win32';
-        const hookFile = path.join(hooksDir, isWindows ? 'post-commit.cmd' : 'post-commit');
-        
-        const hookContent = isWindows 
-            ? this.getWindowsHookContent()
-            : this.getUnixHookContent();
-
+    async createHookScript(hooksDir, runnerPath) {
+        const hookFile = path.join(hooksDir, 'post-commit.cmd');
+        const hookContent = this.getWindowsHookContent(runnerPath);
         fs.writeFileSync(hookFile, hookContent);
-        
-        if (!isWindows) {
-            fs.chmodSync(hookFile, '755');
-        }
     }
 
-    async createRunnerScript(workspaceDir) {
-        const runnerFile = path.join(workspaceDir, 'run_review.js');
+
+    async createRunnerScript() {
+        const runnerFile = path.join(this.context.extensionPath, 'run_review.js');
         const runnerContent = this.getRunnerContent();
-        
         fs.writeFileSync(runnerFile, runnerContent);
+        return runnerFile;
     }
 
-    getWindowsHookContent() {
-        return `@echo off
-echo [POST-COMMIT HOOK] Triggered - calling review server...
-node "%~dp0..\\..\\run_review.js"
-echo [POST-COMMIT HOOK] Hook execution completed
-exit /b 0`;
+
+    getWindowsHookContent(runnerPath) {
+    const nodePath = process.execPath.replace(/\\/g, '\\\\');
+    const fixedRunner = runnerPath.replace(/\\/g, '\\\\');
+
+    return `@echo off
+    echo [POST-COMMIT HOOK] Triggered - calling review server...
+    "${nodePath}" "${fixedRunner}"
+    echo [POST-COMMIT HOOK] Hook execution completed
+    exit /b 0`;
     }
 
-    getUnixHookContent() {
+
+    getUnixHookContent(runnerPath) {
+        // Escape double quotes and convert backslashes for Unix
+        const fixedRunner = runnerPath.replace(/"/g, '\\"').replace(/\\/g, '/');
+        const nodePath = process.execPath.replace(/"/g, '\\"').replace(/\\/g, '/');
+
         return `#!/bin/sh
-echo "[POST-COMMIT HOOK] Triggered - calling review server..."
-node "$(dirname "$0")/../../run_review.js"
-echo "[POST-COMMIT HOOK] Hook execution completed"
-exit 0`;
+            echo "[POST-COMMIT HOOK] Triggered - calling review server..."
+            "${nodePath}" "${fixedRunner}"
+            echo "[POST-COMMIT HOOK] Hook execution completed"
+            exit 0`;
     }
+
 
     getRunnerContent() {
         const config = vscode.workspace.getConfiguration('postCommitReviewer');
