@@ -55,13 +55,17 @@ class HookManager {
 
     getWindowsHookContent() {
         return `@echo off
-node "%~dp0..\\..\\run_review.js" 2>nul
+echo [POST-COMMIT HOOK] Triggered - calling review server...
+node "%~dp0..\\..\\run_review.js"
+echo [POST-COMMIT HOOK] Hook execution completed
 exit /b 0`;
     }
 
     getUnixHookContent() {
         return `#!/bin/sh
-node "$(dirname "$0")/../../run_review.js" 2>/dev/null || true
+echo "[POST-COMMIT HOOK] Triggered - calling review server..."
+node "$(dirname "$0")/../../run_review.js"
+echo "[POST-COMMIT HOOK] Hook execution completed"
 exit 0`;
     }
 
@@ -70,6 +74,9 @@ exit 0`;
         const port = config.get('serverPort', 3001);
         
         return `const http = require('http');
+
+console.log('🔥 Git post-commit hook triggered');
+console.log('📡 Sending request to review server...');
 
 const options = {
     hostname: 'localhost',
@@ -82,15 +89,16 @@ const options = {
 };
 
 const req = http.request(options, (res) => {
-    // Silent success
+    console.log('✅ Server responded with status:', res.statusCode);
 });
 
-req.on('error', () => {
-    // Silent failure
+req.on('error', (error) => {
+    console.log('❌ Failed to connect to server:', error.message);
 });
 
 req.write('{}');
-req.end();`;
+req.end();
+console.log('📤 Request sent to server');`;
     }
 }
 

@@ -68,12 +68,14 @@
       }
     }
   },
+
   "scripts": {
-    "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "esbuild-base": "esbuild ./extension.js --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "clean": "rimraf dist",
+    "esbuild-base": "npx esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:express --external:axios --format=cjs --platform=node",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-    "package": "npm run vscode:prepublish && vsce package",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "package": "npm install --production && npm run vscode:prepublish && vsce package",
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test"
@@ -90,6 +92,7 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.27.0",
-    "eslint": "^9.25.1"
+    "eslint": "^9.25.1",
+    "rimraf": "^6.0.0"
   }
 }
