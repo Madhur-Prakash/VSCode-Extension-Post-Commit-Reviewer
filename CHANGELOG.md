@@ -6,7 +6,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ---
 
-## [v1.0.0](https://github.com/Madhur-Prakash/VSCode-Extension-Readme-Creator/releases/tag/v1.0.0) — Initial Release (2025-11-28)
+## [v1.0.0](https://github.com/Madhur-Prakash/VSCode-Extension-Readme-Creator/releases/tag/v1.0.0) — Initial Release (2025-11-29)
 
 - Added automated post-commit AI code review system.
 - Introduced Git post-commit hook setup command.
