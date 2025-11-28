@@ -32,7 +32,7 @@ class HookManager {
     }
 
     async createHookScript(hooksDir, runnerPath) {
-        const hookFile = path.join(hooksDir, 'post-commit.cmd');
+        const hookFile = path.join(hooksDir, 'post-commit.bat');
         const hookContent = this.getWindowsHookContent(runnerPath);
         fs.writeFileSync(hookFile, hookContent);
     }
@@ -51,10 +51,23 @@ class HookManager {
     const fixedRunner = runnerPath.replace(/\\/g, '\\\\');
 
     return `@echo off
-    echo [POST-COMMIT HOOK] Triggered - calling review server...
-    "${nodePath}" "${fixedRunner}"
-    echo [POST-COMMIT HOOK] Hook execution completed
-    exit /b 0`;
+
+REM Move to repository root (important)
+cd /d "%~dp0.."
+
+echo ============================ >> hook-debug.log
+echo POST-COMMIT HOOK TRIGGERED >> hook-debug.log
+echo Running from: %cd% >> hook-debug.log
+
+echo Files in directory: >> hook-debug.log
+dir >> hook-debug.log
+
+echo Node path: >> hook-debug.log
+where node >> hook-debug.log
+
+echo Running run_server.js >> hook-debug.log
+node run_server.js >> hook-debug.log 2>&1
+`;
     }
 
 
