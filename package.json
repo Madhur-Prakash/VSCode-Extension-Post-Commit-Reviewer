@@ -8,6 +8,7 @@
   },
   "version": "0.0.1",
   "publisher": "MadhurPrakash",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.106.0"
   },
