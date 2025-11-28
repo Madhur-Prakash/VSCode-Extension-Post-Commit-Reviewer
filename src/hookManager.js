@@ -1,7 +1,10 @@
+import { config } from 'dotenv';
+
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { ConfigManager } = require('./configManager');
 
 class HookManager {
     constructor(context) {
@@ -63,35 +66,36 @@ exit 0`;
     }
     
     getRunnerContent() {
-        const config = vscode.workspace.getConfiguration('postCommitReviewer');
+        const config = ConfigManager.getConfig();
         const port = config.get('serverPort', 3001);
         
         return `const http = require('http');
-
-console.log('🔥 Git post-commit hook triggered');
-console.log('📡 Sending request to review server...');
-
-const options = {
-    hostname: 'localhost',
-    port: ${port},
-    path: '/review-diff',
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-};
-
-const req = http.request(options, (res) => {
-    console.log('✅ Server responded with status:', res.statusCode);
-});
-
-req.on('error', (error) => {
-    console.log('❌ Failed to connect to server:', error.message);
-});
-
-req.write('{}');
-req.end();
-console.log('📤 Request sent to server');`;
+        const { ConfigManager } = require('./src/configManager');
+        
+        console.log('🔥 Git post-commit hook triggered');
+        console.log('📡 Sending request to review server...');
+        
+        const options = {
+            hostname: 'localhost',
+            port: ConfigManager.getConfig().serverPort,
+            path: '/review-diff',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+        
+        const req = http.request(options, (res) => {
+            console.log('✅ Server responded with status:', res.statusCode);
+        });
+        
+        req.on('error', (error) => {
+            console.log('❌ Failed to connect to server on port', ConfigManager.getConfig().serverPort, ':', error.message);
+        });
+        
+        req.write('{}');
+        req.end();
+        console.log('📤 Request sent to server');`;
     }
 }
 

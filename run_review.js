@@ -1,11 +1,11 @@
 const http = require('http');
 
 console.log('🔥 Git post-commit hook triggered');
-console.log('📡 Sending request to review server...'); 
+console.log('📡 Sending request to review server...');
 
 const options = {
     hostname: 'localhost',
-    port: 3001,
+    port: 2999,
     path: '/review-diff',
     method: 'POST',
     headers: {

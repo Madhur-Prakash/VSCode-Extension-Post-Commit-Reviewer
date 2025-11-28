@@ -143,6 +143,7 @@ Return your response in strict JSON using this structure:
  
         try {
             console.log("🔵 GROQ CALL TRIGGERED — sending diff to Groq");
+            const model = config.model || 'llama-3.3-70b-versatile';
             const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
                 model: 'llama-3.3-70b-versatile',
                 messages: [
