@@ -8,7 +8,6 @@ class ReviewServer {
         this.context = context;
         this.server = null;
         this.app = express();
-        this.groq = null;
         this.reviewCompleteCallback = null;
         
         this.setupRoutes();
@@ -78,10 +77,6 @@ class ReviewServer {
         
         if (!apiKey) {
             throw new Error('Groq API key not configured');
-        }
-
-        if (!this.groq) {
-            this.groq = new Groq({ apiKey });
         }
 
         const prompt = `You are an expert senior software engineer and code reviewer.
