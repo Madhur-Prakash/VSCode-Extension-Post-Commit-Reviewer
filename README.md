@@ -1,6 +1,9 @@
 # AI Post-Commit Code Review Extension
 
-Automatically reviews your committed code using AI (Groq's Llama3) immediately after Git commits. Get instant feedback on code quality, security issues, performance problems, and best practices violations.
+A VS Code extension that automatically reviews your committed code using AI.
+Just commit your changes, and the extension analyzes your diff for possible security issues, logical errors, and risky patterns using Groq LLMs.
+
+It installs a Git post-commit hook, runs a lightweight local review server, and displays structured AI feedback directly inside VS Code.
 
 ## Features
 
@@ -18,28 +21,40 @@ Automatically reviews your committed code using AI (Groq's Llama3) immediately a
 - Git repository
 - Groq API key (free at [console.groq.com](https://console.groq.com))
 
-## Setup
+## Setup Instructions
 
 1. **Install the extension**
 2. **Get a Groq API key** from [console.groq.com](https://console.groq.com)
-3. **Configure the API key**:
-   - Open VS Code settings
-   - Search for "Post-Commit Reviewer"
-   - Set your Groq API key in `postCommitReviewer.groqApiKey`
-4. **Setup Git hook**:
-   - Open Command Palette (`Ctrl+Shift+P`)
-   - Run "Post-Commit Reviewer: Setup Git Hook"
-5. **Start the review server**:
-   - Run "Post-Commit Reviewer: Start Review Server"
-   - Or enable auto-start in settings
+3. **Ensure a Git Repository Exists:**
+   - Navigate to your project folder in VS Code
+   - Initialize a Git repository if not already done:
+     ```bash
+     git init
+     ```
+4. Install the Git Hook
+   - From the Command Palette:
+      ```bash
+      Post-Commit Reviewer: Setup Git Hook
+      ```
+      >This creates a post-commit hook that triggers reviews after each commit.
+5. **Configure the API key**:
+   - Open command palette **`Ctrl+Shift+P`** on windows or **`Cmd+Shift+P`** on macOS
+      ```bash
+      Post-Commit Reviewer: Configure API Settings
+      ```
+   - Enter your Groq API key
 
-## Extension Settings
+6. **Start the Review Server**
+   - The server starts automatically whenever you open a folder.
+You can still manage it manually:
+      ```bash
+      Post-Commit Reviewer: Start Review Server
+      Post-Commit Reviewer: Stop Review Server
+      ```
+7. **Commit Normally**
+   - Make Git commits as usual. The extension will automatically review your changes.
 
-This extension contributes the following settings:
-
-- `postCommitReviewer.groqApiKey`: Your Groq API key for code review
-- `postCommitReviewer.serverPort`: Port for the local review server (default: 3001)
-- `postCommitReviewer.autoStart`: Automatically start the review server when VS Code opens
+---
 
 ## How It Works
 
@@ -49,12 +64,21 @@ This extension contributes the following settings:
 4. **AI Review**: Diff is sent to Groq's Llama3 for analysis
 5. **Results Display**: Review results appear in VS Code panel
 
-## Commands
 
-- `Post-Commit Reviewer: Setup Git Hook` - Install the post-commit hook
-- `Post-Commit Reviewer: Start Review Server` - Start the local review server
-- `Post-Commit Reviewer: Stop Review Server` - Stop the local review server
-- `Post-Commit Reviewer: Show Review Panel` - Open the review results panel
+## Extension Settings
+
+- You can configure the following settings through command palette:
+
+   ### Commands
+
+   - **`Post-Commit Reviewer: Configure API Settings`** - Set your Groq API key
+   - **`Post-Commit Reviewer: Setup Git Hook`** - Install the post-commit hook
+   - **`Post-Commit Reviewer: Show Review Panel`** - Open the review results panel
+   - **`Post-Commit Reviewer: Start Review Server`** - Start the local review server
+   - **`Post-Commit Reviewer: Stop Review Server`** - Stop the local review server
+   - **`Post-Commit Reviewer: Configure Server Port`** - Configure Server Port
+   - **`Post-Commit Reviewer: Toggle Auto-Start Server`** - Enable/disable auto-start of the review server
+   - **`Post-Commit Reviewer: Create .env Template`** - Generate a .env template file for environment variables
 
 ## Architecture
 
@@ -71,11 +95,11 @@ This extension contributes the following settings:
 
 - Requires internet connection for AI analysis
 - Large diffs may take longer to process
-- Git hook setup requires write permissions to `.git/hooks/`
+- Node must be installed for the local server to run
 
 ## Release Notes
 
-### 0.0.1
+### 1.0.0
 
 Initial release:
 - AI-powered post-commit code review
@@ -85,4 +109,4 @@ Initial release:
 
 ---
 
-**Enjoy automated code reviews!** 🚀
+**Enjoy automated code reviews!** 
