@@ -73,26 +73,47 @@ class ReviewServer {
 }
 
     async getLastCommitDiff() {
-        return new Promise((resolve, reject) => {
-            const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-            if (!workspaceFolder) {
-                console.log('❌ No workspace folder found');
-                reject(new Error('No workspace folder found'));
-                return;
-            }
-            console.log('📁 Workspace folder:', workspaceFolder);
+    return new Promise((resolve, reject) => {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!workspaceFolder) {
+            console.log('❌ No workspace folder found');
+            return reject(new Error('No workspace folder found'));
+        }
 
+        console.log('📁 Workspace folder:', workspaceFolder);
+
+        // First check if this is the first commit
+        exec('git rev-list --count HEAD', { cwd: workspaceFolder }, (countErr, countStdout) => {
+            if (countErr) {
+                vscode.window.showErrorMessage('Unable to check commit history.');
+                console.log('❌ Commit count check error:', countErr.message);
+                return reject(countErr);
+            }
+
+            const commitCount = parseInt(countStdout.trim(), 10);
+
+            // If it's the first commit, handle it
+            if (commitCount === 1) {
+                vscode.window.showInformationMessage('This is the first commit, so there is no previous commit to compare.');
+                console.log('ℹ️ First commit detected — skipping diff.');
+                return resolve('');
+            }
+
+            // Not first commit, run the diff normally
             exec('git diff HEAD~1 HEAD', { cwd: workspaceFolder }, (error, stdout) => {
                 if (error) {
+                    vscode.window.showErrorMessage('Unable to generate the code review.');
                     console.log('❌ Git diff error:', error.message);
-                    reject(error);
-                    return;
+                    return reject(error);
                 }
+
                 console.log('✅ Git diff successful');
                 resolve(stdout);
             });
         });
-    }
+    });
+}
+
 
     async reviewWithGroq(diff) {
         console.log('🤖 Preparing to review diff with Groq API');
