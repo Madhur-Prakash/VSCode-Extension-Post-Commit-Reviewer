@@ -1,6 +1,6 @@
 const vscode = require('vscode');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 // Load environment variables if .env file exists
 try {
@@ -11,9 +11,9 @@ try {
     }
 } catch (error) {
     // dotenv is optional, continue without it
-    console.log('dotenv not found, skipping .env loading');
 }
 
+// Configuration manager
 class ConfigManager {
     static getConfig() {
         const config = vscode.workspace.getConfiguration('postCommitReviewer');
@@ -25,12 +25,15 @@ class ConfigManager {
         const model = config.get('model', '') || 
                      process.env.DEFAULT_MODEL || 
                      'llama-3.3-70b-versatile';
-
+        
+        const serverPort = config.get('serverPort', 3001);
+        const autoStart = config.get('autoStart', true);
+        
         return {
             groqApiKey: groqApiKey.trim(),
             model: model.trim(),
-            serverPort: config.get('serverPort', 3001),
-            autoStart: config.get('autoStart', true)
+            serverPort,
+            autoStart
         };
     }
 
@@ -45,7 +48,7 @@ class ConfigManager {
             );
             
             if (result === 'Configure in Settings') {
-                await vscode.commands.executeCommand('post-commit-reviewer.configure');
+                await this.configureInSettings();
             } else if (result === 'Show .env Instructions') {
                 await this.showEnvInstructions();
             }
@@ -54,12 +57,87 @@ class ConfigManager {
         return true;
     }
 
+    static async configureInSettings() {
+        const config = this.getConfig();
+        
+        const apiKey = await vscode.window.showInputBox({
+            prompt: 'Enter your Groq API Key',
+            value: vscode.workspace.getConfiguration('postCommitReviewer').get('groqApiKey', ''),
+            password: true,
+            ignoreFocusOut: true,
+            placeHolder: 'gsk_...'
+        });
+
+        if (apiKey !== undefined) {
+            if (apiKey.trim() && !apiKey.startsWith('gsk_')) {
+                vscode.window.showErrorMessage('Invalid API Key format. It should start with "gsk_".');
+                return;
+            }
+
+            await vscode.workspace.getConfiguration('postCommitReviewer').update(
+                'groqApiKey', 
+                apiKey, 
+                vscode.ConfigurationTarget.Global
+            );
+            
+            if (apiKey.trim()) {
+                vscode.window.showInformationMessage('API Key configured in VS Code settings successfully!');
+            } else {
+                vscode.window.showWarningMessage('API Key cleared from VS Code settings.');
+            }
+        }
+    }
+
+    static async configureServerPort(reviewServerInstance) {
+        const config = this.getConfig();
+        
+        const port = await vscode.window.showInputBox({
+            prompt: 'Enter server port (1024-65535)',
+            value: config.serverPort.toString(),
+            ignoreFocusOut: true,
+            validateInput: (value) => {
+                const num = parseInt(value);
+                if (isNaN(num) || num < 1024 || num > 65535) {
+                    return 'Please enter a valid port number between 1024 and 65535';
+                }
+                return null;
+            }
+        });
+
+        if (port === undefined) return;
+
+        await vscode.workspace.getConfiguration('postCommitReviewer').update(
+            'serverPort',
+            parseInt(port),
+            vscode.ConfigurationTarget.Global
+        );
+
+        vscode.window.showInformationMessage(`Server port set to ${port}`);
+
+        const choice = await vscode.window.showInformationMessage(
+            `Start the review server on the new port (${port}) now?`,
+            'Yes',
+            'No'
+        );
+
+        if (choice === 'Yes') {
+            if (!reviewServerInstance) {
+                vscode.window.showErrorMessage('Internal error: review server instance not found.');
+                return;
+            }
+
+            await reviewServerInstance.stop();
+            reviewServerInstance.start();
+            vscode.window.showInformationMessage(`Review server restarted on port ${port}`);
+        }
+    }
+
     static async showEnvInstructions() {
         const message = `To use a .env file:
 
 1. Create a .env file in your workspace root
-2. Add: GROQ_API_KEY = your_api_key_here
-3. Add: DEFAULT_MODEL = llama-3.3-70b-versatile (optional)
+2. Add: GROQ_API_KEY=your_api_key_here
+3. Add: DEFAULT_MODEL=llama-3.3-70b-versatile (optional)
 4. Restart VS Code or reload the window
 
 The extension will automatically load these values.`;
@@ -74,7 +152,7 @@ The extension will automatically load these values.`;
         if (result === 'Create .env Template') {
             await this.createEnvTemplate();
         } else if (result === 'Open Settings Instead') {
-            await vscode.commands.executeCommand('post-commit-reviewer.configure');
+            await this.configureInSettings();
         }
     }
 
@@ -86,9 +164,9 @@ The extension will automatically load these values.`;
         }
 
         const envPath = path.join(workspaceFolder, '.env');
-        const envTemplate = `# README Creator Configuration
-GROQ_API_KEY = "your_groq_api_key_here"
-DEFAULT_MODEL = "llama-3.3-70b-versatile"
+        const envTemplate = `# Post-Commit Reviewer Configuration
+GROQ_API_KEY=your_groq_api_key_here
+DEFAULT_MODEL=llama-3.3-70b-versatile
 
 # Get your API key from: https://console.groq.com/keys
 # Available models: llama-3.3-70b-versatile, llama-3.1-70b-versatile, mixtral-8x7b-32768
@@ -125,35 +203,8 @@ DEFAULT_MODEL = "llama-3.3-70b-versatile"
         }
     }
 
-    static async configureInSettings() {
-        const apiKey = await vscode.window.showInputBox({
-            prompt: 'Enter your Groq API Key',
-            value: vscode.workspace.getConfiguration('postCommitReviewer').get('groqApiKey', ''),
-            password: true,
-            ignoreFocusOut: true,
-            placeHolder: 'gsk_...'
-        });
-
-        if (apiKey !== undefined) {
-            if (!apiKey.startsWith('gsk_') && apiKey.trim() !== '') {
-                vscode.window.showErrorMessage('Invalid API Key format. It should start with "gsk_".');
-                return;
-            }
-
-            await vscode.workspace.getConfiguration('postCommitReviewer').update(
-                'groqApiKey', 
-                apiKey, 
-                vscode.ConfigurationTarget.Global
-            );
-            
-            if (apiKey.trim()) {
-                vscode.window.showInformationMessage('API Key configured in VS Code settings successfully!');
-            }
-        }
-    }
-
     static async showCurrentConfig() {
-        const config = ConfigManager.getConfig();
+        const config = this.getConfig();
         const vsCodeSetting = vscode.workspace.getConfiguration('postCommitReviewer').get('groqApiKey', '');
         
         let details = '**Post-Commit Reviewer Configuration**\n\n';
@@ -174,10 +225,11 @@ DEFAULT_MODEL = "llama-3.3-70b-versatile"
         details += `\n**Current Effective Values:**\n`;
         details += `• API Key: ${config.groqApiKey ? `${config.groqApiKey.substring(0, 8)}...` : 'Not configured'}\n`;
         details += `• Model: ${config.model}\n`;
-        details += `• Auto Open: ${config.autoOpen}\n`;
+        details += `• Server Port: ${config.serverPort}\n`;
+        details += `• Auto Start: ${config.autoStart}\n`;
 
         const panel = vscode.window.createWebviewPanel(
-            'postCommitReviewerConfig',
+            'postCommitConfig',
             'Post-Commit Reviewer Configuration',
             vscode.ViewColumn.One,
             {}
@@ -202,35 +254,6 @@ DEFAULT_MODEL = "llama-3.3-70b-versatile"
             </body>
             </html>
         `;
-    }
-
-    static async configureServerPort() {
-        const currentPort = ConfigManager.getConfig().serverPort;
-        const portInput = await vscode.window.showInputBox({
-            prompt: 'Enter the server port number',
-            value: currentPort.toString(),
-            validateInput: (value) => {
-                const port = Number(value);
-                if (isNaN(port) || port < 1 || port > 65535) {
-                    return 'Please enter a valid port number between 1 and 65535';
-                }
-                return null;
-            }
-        });
-
-        if (portInput !== undefined) {
-            const port = Number(portInput);
-            if (!isNaN(port) && port >= 1 && port <= 65535) {
-                await vscode.workspace.getConfiguration('postCommitReviewer').update(
-                    'serverPort',
-                    port,
-                    vscode.ConfigurationTarget.Global
-                );
-                vscode.window.showInformationMessage(`Server port set to ${port}`);
-            } else {
-                vscode.window.showErrorMessage('Invalid port number. Please enter a number between 1 and 65535.');
-            }
-        }
     }
 }
 

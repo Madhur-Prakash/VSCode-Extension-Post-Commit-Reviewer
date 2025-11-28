@@ -58,45 +58,36 @@ function activate(context) {
 
     // 3. Register Commands
     
-    // Configure API Settings
-    const configureCmd = vscode.commands.registerCommand(
-        'post-commit-reviewer.configure',
-        async () => {
-            const apiKey = await vscode.window.showInputBox({
-                prompt: 'Enter Groq API Key',
-                placeHolder: 'gsk_************************',
-                ignoreFocusOut: true
-            });
+    // Command: Configure API Settings
+    const configureCmd = vscode.commands.registerCommand('post-commit-reviewer.configure', async () => {
+        const options = [
+            'Configure in VS Code Settings',
+            'Create/Edit .env File',
+            'Show Current Configuration',
+            'Cancel'
+        ];
+        const choice = await vscode.window.showQuickPick(options, {
+            placeHolder: 'Select configuration option'
+        });
 
-            if (apiKey) {
-                await vscode.workspace
-                    .getConfiguration('postCommitReviewer')
-                    .update('groqApiKey', apiKey, vscode.ConfigurationTarget.Global);
-
-                vscode.window.showInformationMessage('API key saved successfully!');
-            }
+        switch (choice) {
+            case 'Configure in VS Code Settings':
+                await ConfigManager.configureInSettings();
+                break;
+            case 'Create/Edit .env File':
+                await ConfigManager.showEnvInstructions();
+                break;
+            case 'Show Current Configuration':
+                await ConfigManager.showCurrentConfig();
+                break;
         }
-    );
+    });
 
-    // Configure Server Port
+    // Command: Configure Server Port
     const configurePortCmd = vscode.commands.registerCommand(
-        'post-commit-reviewer.configureport',
+        'post-commit-reviewer.configurePort',
         async () => {
-            const port = await vscode.window.showInputBox({
-                prompt: 'Enter Server Port',
-                placeHolder: '3001',
-                ignoreFocusOut: true
-            });
-
-            if (port && !isNaN(Number(port))) {
-                await vscode.workspace
-                    .getConfiguration('postCommitReviewer')
-                    .update('serverPort', Number(port), vscode.ConfigurationTarget.Global);
-
-                vscode.window.showInformationMessage(`Server port set to ${port}`);
-            } else {
-                vscode.window.showErrorMessage('Invalid port number');
-            }
+            const port = await ConfigManager.configureServerPort(reviewServer);
         }
     );
 
@@ -153,7 +144,10 @@ function activate(context) {
         setupHookCmd, 
         startServerCmd, 
         stopServerCmd, 
-        showPanelCmd
+        showPanelCmd,
+        configureCmd,
+        createEnvCmd,
+        configurePortCmd
     );
 
     console.log('✅ Commands registered successfully');

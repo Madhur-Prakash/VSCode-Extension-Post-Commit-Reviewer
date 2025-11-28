@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { ConfigManager } = require('./configManager');
 
 class HookManager {
     constructor(context) {
@@ -64,7 +65,7 @@ exit 0`;
     
     getRunnerContent() {
         const config = ConfigManager.getConfig();
-        const port = config.get('serverPort', 3001);
+        const port = config.serverPort || 3001;
         
         return `const http = require('http');
 const fs = require('fs');

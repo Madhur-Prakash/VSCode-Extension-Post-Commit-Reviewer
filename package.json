@@ -51,7 +51,7 @@
         "icon": "$(gear)"
       },
       {
-        "command": "post-commit-reviewer.configureport",
+        "command": "post-commit-reviewer.configurePort",
         "title": "Configure Server Port",
         "category": "Post-Commit Reviewer",
         "icon": "$(settings-gear)"

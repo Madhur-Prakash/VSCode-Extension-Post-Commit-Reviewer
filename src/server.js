@@ -1,9 +1,8 @@
-import { ConfigManager } from './configManager';
-
 const vscode = require('vscode');
 const express = require('express');
 const { exec } = require('child_process');
 const axios = require('axios');
+const { ConfigManager } = require('./configManager');
 
 class ReviewServer {
     constructor(context) {
@@ -99,7 +98,7 @@ class ReviewServer {
         console.log('🤖 Preparing to review diff with Groq API');
         
         const config = ConfigManager.getConfig();
-        const apiKey = config.get('groqApiKey');
+        const apiKey = config.groqApiKey;
         
         if (!apiKey) {
             throw new Error('Groq API key not configured. Please set it in VS Code settings.');
@@ -206,6 +205,7 @@ Return your response in strict JSON using this structure:
     stop() {
         if (this.server) {
             console.log('🛑 Stopping review server');
+            vscode.window.showInformationMessage('Stopping review server...');
             return new Promise((resolve) => {
                 this.server.close((err) => {
                     if (err) {
