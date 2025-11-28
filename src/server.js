@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const express = require('express');
 const { exec } = require('child_process');
 const axios = require('axios');
+const { ConfigManager } = require('./configManager');
 
 class ReviewServer {
     constructor(context) {
@@ -95,8 +96,17 @@ class ReviewServer {
 
     async reviewWithGroq(diff) {
         console.log('🤖 Preparing to review diff with Groq API');
-        const config = vscode.workspace.getConfiguration('postCommitReviewer');
-        const apiKey = config.get('groqApiKey');
+        
+        // --- CHANGED SECTION START ---
+        // Validate config before proceeding
+        const isValid = await ConfigManager.validateConfig();
+        if (!isValid) {
+            throw new Error('Groq API Key missing. Please configure it via the extension commands.');
+        }
+
+        // Get config using the manager (handles Settings vs .env)
+        const config = ConfigManager.getConfig();
+        const apiKey = config.groqApiKey;
         
         if (!apiKey) {
             throw new Error('Groq API key not configured');
@@ -175,8 +185,8 @@ Return your response in strict JSON using this structure:
     }
 
     start() {
-        const config = vscode.workspace.getConfiguration('postCommitReviewer');
-        const port = config.get('serverPort', 3001);
+        const config = ConfigManager.getConfig(); // Use Manager
+        const port = config.serverPort;           // Use Manager
         console.log('🚀 Starting review server on port', port);
 
         if (this.server) {

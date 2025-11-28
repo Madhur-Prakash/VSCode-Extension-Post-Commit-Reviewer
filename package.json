@@ -2,8 +2,12 @@
   "name": "post-commit-reviewer",
   "displayName": "AI Post-Commit Code Reviewer",
   "description": "Automatically reviews committed code using AI after Git commits",
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/Madhur-Prakash/post-commit-reviewer.git"
+  },
   "version": "0.0.1",
-  "publisher": "your-publisher-name",
+  "publisher": "MadhurPrakash",
   "engines": {
     "vscode": "^1.106.0"
   },
@@ -19,27 +23,50 @@
       {
         "command": "post-commit-reviewer.setupHook",
         "title": "Setup Git Hook",
-        "category": "Post-Commit Reviewer"
+        "category": "Post-Commit Reviewer",
+        "icon": "$(git-commit)"
       },
       {
         "command": "post-commit-reviewer.startServer",
         "title": "Start Review Server",
-        "category": "Post-Commit Reviewer"
+        "category": "Post-Commit Reviewer",
+        "icon": "$(play)"
       },
       {
         "command": "post-commit-reviewer.stopServer",
         "title": "Stop Review Server",
-        "category": "Post-Commit Reviewer"
+        "category": "Post-Commit Reviewer",
+        "icon": "$(debug-stop)"
       },
       {
         "command": "post-commit-reviewer.showPanel",
         "title": "Show Review Panel",
-        "category": "Post-Commit Reviewer"
+        "category": "Post-Commit Reviewer",
+        "icon": "$(output)"
+      },
+      {
+        "command": "post-commit-reviewer.configure",
+        "title": "Configure API Settings",
+        "category": "Post-Commit Reviewer",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "post-commit-reviewer.configureport",
+        "title": "Configure Server Port",
+        "category": "Post-Commit Reviewer",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "post-commit-reviewer.createEnvTemplate",
+        "title": "Create .env Template",
+        "category": "Post-Commit Reviewer",
+        "icon": "$(file-add)"
       }
     ],
     "views": {
       "explorer": [
         {
+          "icon": "checklist",
           "id": "postCommitReviewer",
           "name": "Code Review Results",
           "when": "postCommitReviewer.hasResults"
@@ -53,6 +80,17 @@
           "type": "string",
           "default": "",
           "description": "Groq API Key for code review",
+          "scope": "application"
+        },
+        "postCommitReviewer.model": {
+          "type": "string",
+          "default": "llama-3.3-70b-versatile",
+          "description": "Groq model to use for generation",
+          "enum": [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-70b-versatile",
+            "mixtral-8x7b-32768"
+          ],
           "scope": "application"
         },
         "postCommitReviewer.serverPort": {
@@ -82,6 +120,7 @@
   },
   "dependencies": {
     "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
     "express": "^4.21.2"
   },
   "devDependencies": {
