@@ -43,6 +43,10 @@ class ReviewServer {
                 res.status(500).json({ success: false, error: error.message });
             }
         });
+
+        this.app.get('/health', (req, res) => {
+            res.json({ status: 'ok' });
+        });
     }
 
     async getLastCommitDiff() {

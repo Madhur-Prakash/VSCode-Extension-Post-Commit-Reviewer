@@ -32,9 +32,16 @@ class HookManager {
     }
 
     async createHookScript(hooksDir, runnerPath) {
-        const hookFile = path.join(hooksDir, 'post-commit.bat');
-        const hookContent = this.getWindowsHookContent(runnerPath);
+        const hookFile = path.join(hooksDir, 'post-commit');
+        // Always use Unix/shell format for Git hooks, even on Windows
+        // Git on Windows (Git Bash/MinGW) expects shell scripts, not batch files
+        const hookContent = this.getUnixHookContent(runnerPath);
         fs.writeFileSync(hookFile, hookContent);
+        
+        // Make hook executable on Unix systems
+        if (os.platform() !== 'win32') {
+            fs.chmodSync(hookFile, 0o755);
+        }
     }
 
 
@@ -45,34 +52,14 @@ class HookManager {
         return runnerFile;
     }
 
-
-    getWindowsHookContent(runnerPath) {
-    const nodePath = process.argv[0].replace(/\\/g, '\\\\'); 
-    const fixedRunner = runnerPath.replace(/\\/g, '\\\\');
-
-    return `@echo off
-echo [POST-COMMIT HOOK] Triggered - calling review server...
-node "%~dp0..\..\r run_review.js"
-echo [POST-COMMIT HOOK] Hook execution completed
-exit /b 0
-`;
-    }
-
-
     getUnixHookContent(runnerPath) {
-    const nodePath = process.argv[0]
-        .replace(/"/g, '\\"')
-        .replace(/\\/g, '/');
-
-    const fixedRunner = runnerPath
-        .replace(/"/g, '\\"')
-        .replace(/\\/g, '/');
-
-    return `#!/bin/sh
-    echo "[POST-COMMIT HOOK] Triggered - calling review server..."
-    "${nodePath}" "${fixedRunner}"
-    echo "[POST-COMMIT HOOK] Hook execution completed"
-    exit 0`;
+        const fixedRunner = runnerPath.replace(/\\/g, '/');
+        
+        return `#!/bin/sh
+echo "[POST-COMMIT HOOK] Triggered - calling review server..."
+node "${fixedRunner}"
+echo "[POST-COMMIT HOOK] Hook execution completed"
+exit 0`;
     }
 
     getRunnerContent() {
