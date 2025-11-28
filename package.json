@@ -13,7 +13,9 @@
     "vscode": "^1.106.0"
   },
   "categories": [
-    "Other"
+  "AI",
+  "Debuggers",
+  "Other"
   ],
   "activationEvents": [
     "onStartupFinished"
