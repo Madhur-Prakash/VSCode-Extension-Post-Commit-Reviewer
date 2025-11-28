@@ -107,7 +107,7 @@ Return your response in strict JSON using this structure:
     }
   ]
 }`;
-
+ 
         try {
             console.log("🔵 GROQ CALL TRIGGERED — sending diff to Groq");
             const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
