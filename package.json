@@ -57,6 +57,12 @@
         "icon": "$(settings-gear)"
       },
       {
+        "command": "post-commit-reviewer.toggleAutoStart",
+        "title": "Toggle Auto-Start Server",
+        "category": "Post-Commit Reviewer",
+        "icon": "$(settings-gear)"
+      },
+      {
         "command": "post-commit-reviewer.createEnvTemplate",
         "title": "Create .env Template",
         "category": "Post-Commit Reviewer",
