@@ -83,6 +83,17 @@ function activate(context) {
         }
     });
 
+    // command: toggle auto-start
+    const toggleAutoStartCmd = vscode.commands.registerCommand(
+        'post-commit-reviewer.toggleAutoStart',
+        async () => {
+            const config = ConfigManager.getConfig();
+            const newValue = !config.autoStart;
+            vscode.workspace.getConfiguration('postCommitReviewer').update('autoStart', newValue, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(`Auto-start on launch is now ${newValue ? 'enabled' : 'disabled'}.`);
+        }
+    );
+
     // Command: Configure Server Port
     const configurePortCmd = vscode.commands.registerCommand(
         'post-commit-reviewer.configurePort',
