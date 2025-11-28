@@ -1,10 +1,7 @@
-import { config } from 'dotenv';
-
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { ConfigManager } = require('./configManager');
 
 class HookManager {
     constructor(context) {
@@ -70,32 +67,45 @@ exit 0`;
         const port = config.get('serverPort', 3001);
         
         return `const http = require('http');
-        const { ConfigManager } = require('./src/configManager');
-        
-        console.log('🔥 Git post-commit hook triggered');
-        console.log('📡 Sending request to review server...');
-        
-        const options = {
-            hostname: 'localhost',
-            port: ConfigManager.getConfig().serverPort,
-            path: '/review-diff',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-        
-        const req = http.request(options, (res) => {
-            console.log('✅ Server responded with status:', res.statusCode);
-        });
-        
-        req.on('error', (error) => {
-            console.log('❌ Failed to connect to server on port', ConfigManager.getConfig().serverPort, ':', error.message);
-        });
-        
-        req.write('{}');
-        req.end();
-        console.log('📤 Request sent to server');`;
+const fs = require('fs');
+const path = require('path');
+
+console.log('🔥 Git post-commit hook triggered');
+console.log('📡 Sending request to review server...');
+
+// Try to read port from VS Code settings
+let port = ${port};
+try {
+    const settingsPath = path.join(require('os').homedir(), '.vscode', 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        port = settings['postCommitReviewer.serverPort'] || port;
+    }
+} catch (e) {
+    // Use default port if settings can't be read
+}
+
+const options = {
+    hostname: 'localhost',
+    port: port,
+    path: '/review-diff',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+};
+
+const req = http.request(options, (res) => {
+    console.log('✅ Server responded with status:', res.statusCode);
+});
+
+req.on('error', (error) => {
+    console.log('❌ Failed to connect to server on port', port, ':', error.message);
+});
+
+req.write('{}');
+req.end();
+console.log('📤 Request sent to server on port', port);`;
     }
 }
 

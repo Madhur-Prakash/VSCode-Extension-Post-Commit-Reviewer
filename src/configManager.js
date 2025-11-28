@@ -205,7 +205,7 @@ DEFAULT_MODEL = "llama-3.3-70b-versatile"
     }
 
     static async configureServerPort() {
-        const currentPort = vscode.workspace.getConfiguration('postCommitReviewer').get('serverPort', 3001);
+        const currentPort = ConfigManager.getConfig().serverPort;
         const portInput = await vscode.window.showInputBox({
             prompt: 'Enter the server port number',
             value: currentPort.toString(),

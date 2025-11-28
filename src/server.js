@@ -1,8 +1,9 @@
+import { ConfigManager } from './configManager';
+
 const vscode = require('vscode');
 const express = require('express');
 const { exec } = require('child_process');
 const axios = require('axios');
-const { ConfigManager } = require('./configManager');
 
 class ReviewServer {
     constructor(context) {
@@ -97,19 +98,11 @@ class ReviewServer {
     async reviewWithGroq(diff) {
         console.log('🤖 Preparing to review diff with Groq API');
         
-        // --- CHANGED SECTION START ---
-        // Validate config before proceeding
-        const isValid = await ConfigManager.validateConfig();
-        if (!isValid) {
-            throw new Error('Groq API Key missing. Please configure it via the extension commands.');
-        }
-
-        // Get config using the manager (handles Settings vs .env)
         const config = ConfigManager.getConfig();
-        const apiKey = config.groqApiKey;
+        const apiKey = config.get('groqApiKey');
         
         if (!apiKey) {
-            throw new Error('Groq API key not configured');
+            throw new Error('Groq API key not configured. Please set it in VS Code settings.');
         }
 
         const prompt = `You are an expert senior software engineer and code reviewer.
@@ -143,7 +136,7 @@ Return your response in strict JSON using this structure:
  
         try {
             console.log("🔵 GROQ CALL TRIGGERED — sending diff to Groq");
-            const model = config.model || 'llama-3.3-70b-versatile';
+            const model = 'llama-3.3-70b-versatile';
             const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
                 model: 'llama-3.3-70b-versatile',
                 messages: [
@@ -186,8 +179,8 @@ Return your response in strict JSON using this structure:
     }
 
     start() {
-        const config = ConfigManager.getConfig(); // Use Manager
-        const port = config.serverPort;           // Use Manager
+        const config = ConfigManager.getConfig();
+        const port = config.serverPort || 3001;
         console.log('🚀 Starting review server on port', port);
 
         if (this.server) {
@@ -200,14 +193,34 @@ Return your response in strict JSON using this structure:
             console.log('✅ Review server started on port', port);
             vscode.window.showInformationMessage(`Review server started on port ${port}`);
         });
+
+        this.server.on('error', (error) => {
+            console.error('❌ Server error:', error);
+            if (error.code === 'EADDRINUSE') {
+                vscode.window.showErrorMessage(`Port ${port} is already in use. Please change the port in settings.`);
+            }
+            this.server = null;
+        });
     }
 
     stop() {
         if (this.server) {
             console.log('🛑 Stopping review server');
-            this.server.close();
-            this.server = null;
-            vscode.window.showInformationMessage('Review server stopped');
+            return new Promise((resolve) => {
+                this.server.close((err) => {
+                    if (err) {
+                        console.error('❌ Error stopping server:', err);
+                    } else {
+                        console.log('✅ Server stopped successfully');
+                    }
+                    this.server = null;
+                    vscode.window.showInformationMessage('Review server stopped');
+                    resolve();
+                });
+            });
+        } else {
+            console.log('⚠️ No server to stop');
+            vscode.window.showInformationMessage('No server is currently running');
         }
     }
 

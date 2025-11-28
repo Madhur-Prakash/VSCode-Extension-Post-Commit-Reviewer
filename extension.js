@@ -58,6 +58,70 @@ function activate(context) {
 
     // 3. Register Commands
     
+    // Configure API Settings
+    const configureCmd = vscode.commands.registerCommand(
+        'post-commit-reviewer.configure',
+        async () => {
+            const apiKey = await vscode.window.showInputBox({
+                prompt: 'Enter Groq API Key',
+                placeHolder: 'gsk_************************',
+                ignoreFocusOut: true
+            });
+
+            if (apiKey) {
+                await vscode.workspace
+                    .getConfiguration('postCommitReviewer')
+                    .update('groqApiKey', apiKey, vscode.ConfigurationTarget.Global);
+
+                vscode.window.showInformationMessage('API key saved successfully!');
+            }
+        }
+    );
+
+    // Configure Server Port
+    const configurePortCmd = vscode.commands.registerCommand(
+        'post-commit-reviewer.configureport',
+        async () => {
+            const port = await vscode.window.showInputBox({
+                prompt: 'Enter Server Port',
+                placeHolder: '3001',
+                ignoreFocusOut: true
+            });
+
+            if (port && !isNaN(Number(port))) {
+                await vscode.workspace
+                    .getConfiguration('postCommitReviewer')
+                    .update('serverPort', Number(port), vscode.ConfigurationTarget.Global);
+
+                vscode.window.showInformationMessage(`Server port set to ${port}`);
+            } else {
+                vscode.window.showErrorMessage('Invalid port number');
+            }
+        }
+    );
+
+    // Create .env template
+    const createEnvCmd = vscode.commands.registerCommand(
+        'post-commit-reviewer.createEnvTemplate',
+        async () => {
+            const ws = vscode.workspace.workspaceFolders?.[0];
+            if (!ws) {
+                vscode.window.showErrorMessage('Open a folder first');
+                return;
+            }
+
+            const fs = require('fs');
+            const path = require('path');
+            const filePath = path.join(ws.uri.fsPath, '.env');
+
+            if (!fs.existsSync(filePath)) {
+                fs.writeFileSync(filePath, 'GROQ_API_KEY=\nSERVER_PORT=3001\n');
+                vscode.window.showInformationMessage('.env template created');
+            } else {
+                vscode.window.showWarningMessage('.env already exists');
+            }
+        }
+    );
     // Command: Setup Git Hook
     const setupHookCmd = vscode.commands.registerCommand('post-commit-reviewer.setupHook', async () => {
         console.log('🔧 Setup hook command triggered');
@@ -65,19 +129,15 @@ function activate(context) {
     });
 
     // Command: Start Server
-    const startServerCmd = vscode.commands.registerCommand('post-commit-reviewer.startServer', async () => {
+    const startServerCmd = vscode.commands.registerCommand('post-commit-reviewer.startServer', () => {
         console.log('🚀 Start server command triggered');
-        // Validate API key presence before starting
-        const isValid = await ConfigManager.validateConfig();
-        if (isValid) {
-            reviewServer.start();
-        }
+        reviewServer.start();
     });
 
     // Command: Stop Server
-    const stopServerCmd = vscode.commands.registerCommand('post-commit-reviewer.stopServer', () => {
+    const stopServerCmd = vscode.commands.registerCommand('post-commit-reviewer.stopServer', async () => {
         console.log('🛑 Stop server command triggered');
-        reviewServer.stop();
+        await reviewServer.stop();
     });
 
     // Command: Show Results Panel
@@ -86,53 +146,14 @@ function activate(context) {
         reviewPanel.show();
     });
 
-    // Command: Configure API Settings (Settings or .env)
-    const configureCmd = vscode.commands.registerCommand('post-commit-reviewer.configure', async () => {
-        const options = [
-            'Configure in VS Code Settings',
-            'Create/Edit .env File',
-            'Show Current Configuration',   
-            'Cancel'];
-        const choice = await vscode.window.showQuickPick(options, {
-            placeHolder: 'Select configuration method for Groq API Key'
-        });
 
-        switch (choice) {
-            case 'Configure in VS Code Settings':
-                await ConfigManager.configureInSettings();
-                break;
-            case 'Create/Edit .env File':
-                await ConfigManager.showEnvInstructions();
-                break;
-            case 'Show Current Configuration':
-                await ConfigManager.showCurrentConfig();
-                break;
-            case 'Cancel':
-                break;
-            default:
-                break;
-        }
-    });
-
-    // Command: Configure Server Port
-    const configurePortCmd = vscode.commands.registerCommand('post-commit-reviewer.configureport', async () => {
-        await ConfigManager.configureServerPort();
-    });
-
-    // Command: Create .env Template
-    const createEnvCmd = vscode.commands.registerCommand('post-commit-reviewer.createEnvTemplate', async () => {
-        await ConfigManager.createEnvTemplate();
-    });
 
     // Add all commands to subscriptions
     context.subscriptions.push(
         setupHookCmd, 
         startServerCmd, 
         stopServerCmd, 
-        showPanelCmd, 
-        configureCmd, 
-        createEnvCmd,
-        configurePortCmd
+        showPanelCmd
     );
 
     console.log('✅ Commands registered successfully');
@@ -157,10 +178,10 @@ function activate(context) {
 /**
  * This method is called when your extension is deactivated
  */
-function deactivate() {
+async function deactivate() {
     console.log('🛑 Extension deactivating');
     if (reviewServer) {
-        reviewServer.stop();
+        await reviewServer.stop();
     }
 }
 
