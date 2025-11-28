@@ -48,6 +48,29 @@ class ReviewServer {
         });
     }
 
+    convert_string_to_json(jsonString) {
+        try {
+        console.log("received jsonString:", jsonString);
+
+        if (jsonString.startsWith("```")) {
+            jsonString = jsonString.replace(/```/g, "");  // remove backticks
+            jsonString = jsonString.replace(/^json/, "").trim(); // remove leading 'json'
+        }
+
+        const jsonObject = JSON.parse(jsonString);
+
+        console.log("=".repeat(60));
+        console.log("=".repeat(60));
+        console.log("Converted JSON object:", jsonObject);
+
+        return jsonObject;
+
+    } catch (err) {
+        console.log("Error decoding JSON string:", err.message);
+        return null;
+    }
+}
+
     async getLastCommitDiff() {
         return new Promise((resolve, reject) => {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -131,10 +154,11 @@ Return your response in strict JSON using this structure:
                 throw new Error('Invalid response from Groq API');
             }
 
-            const content = response.data.choices[0].message.content;
-            console.log("🟢 GROQ RESPONSE RECEIVED:", content.slice(0, 100));
-            return content.trim();
-
+            let content = response.data.choices[0].message.content;
+            console.log("🟢 GROQ RESPONSE RECEIVED:", content);
+            
+            const jsonResponse = this.convert_string_to_json(content);
+            return jsonResponse;
         } catch (error) {
             console.error('Error generating groq review', error);
             

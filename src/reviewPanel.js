@@ -36,7 +36,19 @@ class ReviewPanel {
 
     displayResults(results) {
         console.log('📊 Displaying review results:', results);
-        this.currentResults = results;
+        
+        // Ensure results is an object
+        if (typeof results === 'string') {
+            try {
+                this.currentResults = JSON.parse(results);
+            } catch (e) {
+                console.error('Failed to parse results:', e);
+                this.currentResults = { issues: [] };
+            }
+        } else {
+            this.currentResults = results || { issues: [] };
+        }
+        
         vscode.commands.executeCommand('setContext', 'postCommitReviewer.hasResults', true);
         
         if (!this.panel) {
@@ -76,6 +88,7 @@ class ReviewPanel {
 
         const issues = this.currentResults.issues || [];
         const issueCount = issues.length;
+        console.log(`📊 issues are: ${issues}`);
 
         return `<!DOCTYPE html>
 <html>
