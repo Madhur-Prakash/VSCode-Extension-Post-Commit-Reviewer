@@ -23,7 +23,7 @@ It installs a Git post-commit hook, runs a lightweight local review server, and 
 
 ## Installation
 
-Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Madhur-Prakash.post-commit-reviewer) or download the `.vsix` file from the [Releases](https://github.com/Madhur-Prakash/VSCode-Extension-Readme-Creator/releases).
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Madhur-Prakash.post-commit-reviewer) or download the `.vsix` file from the [Releases](https://github.com/Madhur-Prakash/VSCode-Extension-Post-Commit-Reviewer/releases).
 
 ---
 
@@ -102,16 +102,6 @@ You can still manage it manually:
 - Requires internet connection for AI analysis
 - Large diffs may take longer to process
 - Node must be installed for the local server to run
-
-## Release Notes
-
-### 1.0.0
-
-Initial release:
-- AI-powered post-commit code review
-- Cross-platform Git hook support
-- Real-time results in VS Code
-- Groq Llama3 integration
 
 ---
 
