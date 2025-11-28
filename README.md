@@ -21,6 +21,12 @@ It installs a Git post-commit hook, runs a lightweight local review server, and 
 - Git repository
 - Groq API key (free at [console.groq.com](https://console.groq.com))
 
+## Installation
+
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Madhur-Prakash.post-commit-reviewer) or download the `.vsix` file from the [Releases](https://github.com/Madhur-Prakash/VSCode-Extension-Readme-Creator/releases).
+
+---
+
 ## Setup Instructions
 
 1. **Install the extension**
