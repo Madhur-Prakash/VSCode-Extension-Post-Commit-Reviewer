@@ -123,6 +123,11 @@ class ReviewPanel {
         .issue-section { 
             margin-bottom: 10px; 
         }
+        .issue-index{
+            font-weight: bold;
+            color: var(--vscode-foreground);
+            margin-bottom: 8px;
+            }
         .issue-label { 
             font-weight: bold; 
             color: var(--vscode-descriptionForeground); 
@@ -154,7 +159,8 @@ class ReviewPanel {
         '<div class="no-issues">No issues found in the latest commit. Great job! 🎉</div>' :
         issues.map((issue, index) => `
             <div class="issue">
-                <div class="issue-title">${this.escapeHtml(issue.title || `Issue ${index + 1}`)}</div>
+                <div class="issue-index">Issue ${index + 1}:</div>
+                <div class="issue-title">${this.escapeHtml(issue.title)}</div>
                 
                 <div class="issue-section">
                     <div class="issue-label">Explanation:</div>
@@ -216,9 +222,17 @@ class ReviewPanel {
     }
 
     escapeHtml(text) {
-        const div = { innerHTML: '' };
-        div.textContent = text;
-        return div.innerHTML;
+        if (typeof text !== 'string') {
+            return '';
+        }
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, char => map[char]);
     }
 }
 
