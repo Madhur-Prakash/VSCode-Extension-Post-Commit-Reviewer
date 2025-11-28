@@ -51,22 +51,10 @@ class HookManager {
     const fixedRunner = runnerPath.replace(/\\/g, '\\\\');
 
     return `@echo off
-
-REM Move to repository root (important)
-cd /d "%~dp0.."
-
-echo ============================ >> hook-debug.log
-echo POST-COMMIT HOOK TRIGGERED >> hook-debug.log
-echo Running from: %cd% >> hook-debug.log
-
-echo Files in directory: >> hook-debug.log
-dir >> hook-debug.log
-
-echo Node path: >> hook-debug.log
-where node >> hook-debug.log
-
-echo Running run_server.js >> hook-debug.log
-node run_server.js >> hook-debug.log 2>&1
+echo [POST-COMMIT HOOK] Triggered - calling review server...
+node "%~dp0..\..\r run_review.js"
+echo [POST-COMMIT HOOK] Hook execution completed
+exit /b 0
 `;
     }
 
