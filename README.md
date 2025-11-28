@@ -23,7 +23,7 @@ It installs a Git post-commit hook, runs a lightweight local review server, and 
 
 ## Installation
 
-Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Madhur-Prakash.post-commit-reviewer) or download the `.vsix` file from the [Releases](https://github.com/Madhur-Prakash/VSCode-Extension-Post-Commit-Reviewer/releases).
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MadhurPrakash.post-commit-reviewer) or download the `.vsix` file from the [Releases](https://github.com/Madhur-Prakash/VSCode-Extension-Post-Commit-Reviewer/releases).
 
 ---
 
