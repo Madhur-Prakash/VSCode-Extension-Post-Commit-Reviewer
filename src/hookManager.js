@@ -61,7 +61,7 @@ node "${fixedRunner}"
 echo "[POST-COMMIT HOOK] Hook execution completed"
 exit 0`;
     }
-
+    
     getRunnerContent() {
         const config = vscode.workspace.getConfiguration('postCommitReviewer');
         const port = config.get('serverPort', 3001);
