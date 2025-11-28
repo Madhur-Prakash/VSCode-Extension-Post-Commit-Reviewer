@@ -1,7 +1,7 @@
 const http = require('http');
 
 console.log('🔥 Git post-commit hook triggered');
-console.log('📡 Sending request to review server...');
+console.log('📡 Sending request to review server...'); 
 
 const options = {
     hostname: 'localhost',
