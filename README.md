@@ -13,6 +13,7 @@ It installs a Git post-commit hook, runs a lightweight local review server, and 
 - **Real-time Results**: Displays review results directly in VS Code
 - **Issue Detection**: Identifies logic errors, security risks, performance issues, and code smells
 - **Actionable Feedback**: Provides explanations, reasons, and suggested fixes
+- **Support for Multiple VS Code Workspaces**: Automatically manages the review server for each opened workspace folder 
 
 ## Requirements
 
@@ -59,7 +60,6 @@ You can still manage it manually:
       ```
 7. **Commit Normally**
    - Make Git commits as usual. The extension will automatically review your changes.
-   > Note: At the moment, automatic reviews only run when commits are made through the terminal. Commits made using the Source Control panel in VS Code are not detected yet. Future releases will support both.
 ---
 
 ## How It Works
