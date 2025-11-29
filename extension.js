@@ -133,9 +133,9 @@ function activate(context) {
     });
 
     // Command: Start Server
-    const startServerCmd = vscode.commands.registerCommand('post-commit-reviewer.startServer', () => {
+    const startServerCmd = vscode.commands.registerCommand('post-commit-reviewer.startServer', async () => {
         console.log('🚀 Start server command triggered');
-        reviewServer.start();
+        await reviewServer.start();
     });
 
     // Command: Stop Server
@@ -239,9 +239,9 @@ function activate(context) {
         console.log('🔄 Auto-start enabled, checking configuration...');
         // We do a silent check here. If invalid, we don't nag the user on startup,
         // we just log it. They will be prompted when they try to use it.
-        ConfigManager.validateConfig().then((isValid) => {
+        ConfigManager.validateConfig().then(async (isValid) => {
             if (isValid) {
-                reviewServer.start();
+                await reviewServer.start();
             } else {
                 console.log('⚠️ Auto-start skipped: API Key not configured.');
             }

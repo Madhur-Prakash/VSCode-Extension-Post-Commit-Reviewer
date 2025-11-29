@@ -198,14 +198,21 @@ Return your response in strict JSON using this structure:
         }
     }
 
-    start() {
+    async start() {
         const config = ConfigManager.getConfig();
         const port = config.serverPort || 3001;
         console.log('🚀 Starting review server on port', port);
 
         if (this.server) {
-            console.log('⚠️ Server already running');
-            vscode.window.showWarningMessage('Review server is already running');
+            console.log('⚠️ Server already running in this window');
+            return;
+        }
+
+        // Check if server is already running on this port
+        const isRunning = await this.checkServerHealth(port);
+        if (isRunning) {
+            console.log('✅ Server already running on port', port, '- using existing server');
+            vscode.window.showInformationMessage(`Using existing review server on port ${port}`);
             return;
         }
 
@@ -217,9 +224,47 @@ Return your response in strict JSON using this structure:
         this.server.on('error', (error) => {
             console.error('❌ Server error:', error);
             if (error.code === 'EADDRINUSE') {
-                vscode.window.showErrorMessage(`Port ${port} is already in use. Please change the port in settings.`);
+                console.log('✅ Port in use - checking if it\'s our server...');
+                this.checkServerHealth(port).then((isOurServer) => {
+                    if (isOurServer) {
+                        vscode.window.showInformationMessage(`Using existing review server on port ${port}`);
+                    } else {
+                        vscode.window.showErrorMessage(`Port ${port} is in use by another application. Please change the port in settings.`);
+                    }
+                });
             }
             this.server = null;
+        });
+    }
+
+    async checkServerHealth(port) {
+        return new Promise((resolve) => {
+            const http = require('http');
+            const options = {
+                hostname: 'localhost',
+                port: port,
+                path: '/health',
+                method: 'GET',
+                timeout: 2000
+            };
+
+            const req = http.request(options, (res) => {
+                if (res.statusCode === 200) {
+                    resolve(true); // Server is running and responding
+                } else {
+                    resolve(false);
+                }
+            });
+
+            req.on('error', () => {
+                resolve(false); // Server not running
+            });
+
+            req.on('timeout', () => {
+                resolve(false);
+            });
+
+            req.end();
         });
     }
 
