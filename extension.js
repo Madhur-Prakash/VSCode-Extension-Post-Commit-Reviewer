@@ -1,4 +1,6 @@
 const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
 
 // Global variables to maintain state
 let reviewServer;
@@ -163,7 +165,74 @@ function activate(context) {
 
     console.log('✅ Commands registered successfully');
 
-    // 4. Auto-Start Logic
+    // 4. Watch for Source Control commits
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    
+    if (workspaceFolder) {
+        const gitHeadPath = path.join(workspaceFolder, ".git", "HEAD");
+        
+        if (fs.existsSync(gitHeadPath)) {
+            fs.watch(gitHeadPath, async () => {
+                try {
+                    const headContent = fs.readFileSync(gitHeadPath, "utf8").trim();
+
+                    let commitHash;
+                    if (headContent.startsWith("ref:")) {
+                        const refPath = headContent.replace("ref: ", "").trim();
+                        const fullRefPath = path.join(workspaceFolder, ".git", refPath);
+                        commitHash = fs.readFileSync(fullRefPath, "utf8").trim();
+                    } else {
+                        commitHash = headContent;
+                    }
+
+                    triggerPostCommitReview(commitHash);
+
+                } catch (err) {
+                    console.log("❌ Error reading HEAD:", err);
+                }
+            });
+            console.log("👀 Watching for Source Control commits...");
+        }
+    }
+
+    let lastCommit = null;
+
+    function triggerPostCommitReview(commitHash) {
+        if (commitHash === lastCommit) return; // prevent duplicate triggers
+        lastCommit = commitHash;
+
+        console.log("🔥 Commit detected (GUI or terminal):", commitHash);
+        callReviewServer();
+    }
+
+    function callReviewServer() {
+        const http = require('http');
+        const config = ConfigManager.getConfig();
+        const port = config.serverPort;
+        
+        const options = {
+            hostname: 'localhost',
+            port: port,
+            path: '/review-diff',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const req = http.request(options, (res) => {
+            console.log('✅ Review triggered from commit');
+        });
+
+        req.on('error', (error) => {
+            console.log('❌ Failed to trigger review:', error.message);
+        });
+
+        req.write('{}');
+        req.end();
+    }
+
+    // 5. Auto-Start Logic
     // Check configuration and auto-start server if enabled
     const config = ConfigManager.getConfig();
     if (config.autoStart) {
