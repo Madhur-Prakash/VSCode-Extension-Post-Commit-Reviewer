@@ -59,7 +59,7 @@ You can still manage it manually:
       ```
 7. **Commit Normally**
    - Make Git commits as usual. The extension will automatically review your changes.
-
+   > Note: At the moment, automatic reviews only run when commits are made through the terminal. Commits made using the Source Control panel in VS Code are not detected yet. Future releases will support both.
 ---
 
 ## How It Works
