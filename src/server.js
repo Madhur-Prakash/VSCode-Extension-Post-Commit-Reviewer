@@ -205,6 +205,7 @@ Return your response in strict JSON using this structure:
 
         if (this.server) {
             console.log('⚠️ Server already running in this window');
+            vscode.window.showInformationMessage('Server already running in this window on port ' + port);
             return;
         }
 
