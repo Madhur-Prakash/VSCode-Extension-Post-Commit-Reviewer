@@ -16,3 +16,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Added commands for configuration (API key, port, auto-start).
 - Added `.env` template generator.
 - Included full extension settings for customization.
+
+---
+
+## [v1.0.1](https://github.com/Madhur-Prakash/VSCode-Extension-Readme-Creator/compare/v1.0.0...v1.0.1) — Minor Fixes (2025-12-05)
+
+- Fixed a minor code issue to improve output reliability during post-commit analysis.
+- Updated one line of logic to ensure consistent and accurate review results.
